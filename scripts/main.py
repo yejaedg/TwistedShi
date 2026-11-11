@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # لیست لینک‌های Raw گیت‌هاب برای دریافت کانفیگ‌ها
 GITHUB_RAW_URLS = [
-    "https://raw.githubusercontent.com/username/repository/main/configs.txt",
+    "https://github.com/0xRadikal/Free-v2ray-Configs/raw/refs/heads/main/top100.txt",
 ]
 
 SEND_TO_TELEGRAM = os.getenv('SEND_TO_TELEGRAM', 'false').lower() == 'true'
@@ -255,17 +255,22 @@ def main():
     logging.info("Step 5: Processing and saving results...")
     protocol_counts = process_and_save_results(checked_configs)
     
-    if SEND_TO_TELEGRAM:
+   if SEND_TO_TELEGRAM:
         if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID and TELEGRAM_CHANNEL_ID:
             try:
                 bot = telegram_sender.init_bot(TELEGRAM_BOT_TOKEN)
                 if bot:
+                    # ۱. ارسال پیام خلاصه آمار
                     telegram_sender.send_summary_message(bot, TELEGRAM_CHANNEL_ID, protocol_counts)
-                    logging.info("Telegram notification sent successfully.")
+                    
+                    # ۲. ارسال کانفیگ‌ها به پست‌های حداکثر ۱۰ تایی
+                    telegram_sender.send_all_grouped_configs(bot, TELEGRAM_CHANNEL_ID, checked_configs, chunk_size=10)
+                    
+                    logging.info("Telegram notifications sent successfully.")
             except Exception as e:
                 logging.error(f"Telegram error: {e}")
         else:
-            logging.warning("Telegram credentials missing.")
+                    logging.warning("Telegram credentials missing.")
 
     logging.info("--- Process finished successfully! ---")
 
