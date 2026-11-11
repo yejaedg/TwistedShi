@@ -336,7 +336,6 @@ trojan://5t6i121em5lkmsmk@136.244.91.14:51520?sni=de001.zestapp778.com&type=tcp&
 trojan://5t6i121em5lkmsmk@149.248.50.252:46977?sni=ca001.zestapp778.com&type=tcp#CA
 trojan://5t6i121em5lkmsmk@au001.zestapp778.com:54374?sni=au001.zestapp778.com&allowInsecure=1&type=tcp#AU
 trojan://5t6i121em5lkmsmk@au001.zestapp778.com:54374?type=tcp&security=tls&fp=chrome&sni=au001.zestapp778.com#AU
-trojan://5t6i121em5lkmsmk@ca001.zestapp778.com:46977?allowInsecure=1&sni=ca001.zestapp778.com&type=tcp#CA
 trojan://5t6i121em5lkmsmk@mx001.zestapp778.com:15083?allowInsecure=1&sni=mx001.zestapp778.com&type=tcp#MX
 trojan://5t6i121em5lkmsmk@mx001.zestapp778.com:15083?type=tcp#MX
 trojan://dba20dcb635e430fa4d3bfc303a149d2@216.106.186.32:443?allowInsecure=1&sni=blog.findlocaljobnetworkandbuildcommunityconnections.com&type=tcp#US
