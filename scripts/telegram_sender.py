@@ -21,9 +21,9 @@ MAIN_CHANNEL_URL = f"https://t.me/{MAIN_CHANNEL_ID_RAW}"
 CONFIG_CHANNEL_ID_RAW = os.getenv('TELEGRAM_CHANNEL_ID', 'v2ray_Extractor').lstrip('@')
 CONFIG_CHANNEL_URL = f"https://t.me/{CONFIG_CHANNEL_ID_RAW}"
 
+# تعریف دکمه شیشه‌ای (Inline Keyboard)
 MARKUP = types.InlineKeyboardMarkup(row_width=1)
 btn1 = types.InlineKeyboardButton("Stay Connected", url="https://t.me/DemonDungeon")
-
 MARKUP.add(btn1)
 
 
@@ -73,7 +73,7 @@ def send_with_rate_limit_handling(bot_instance, chat_id, text, reply_markup=None
         except Exception as e:
             logging.error(f"Failed to send telegram message: {e}")
             break
-            
+          
 def add_tag_to_config(config_line, tag="DemonWasHere"):
     """تگ دلخواه را با امنیت کامل به انتهای نام کانفیگ اضافه می‌کند"""
     if not isinstance(config_line, str):
@@ -97,54 +97,43 @@ def add_tag_to_config(config_line, tag="DemonWasHere"):
 
 
 def send_all_grouped_configs(bot, channel_id, configs, chunk_size=10):
-    """ارسال کانفیگ‌ها به صورت دسته‌ای همراه با تگ‌گذاری و جلوگیری از خطای متغیر"""
+    """ارسال کانفیگ‌ها به صورت دسته‌ای، تمیزشده، تگ‌خورده همراه با کپشن کامل و دکمه شیشه‌ای"""
     if not configs:
         logging.warning("No configs to send.")
         return
 
     total = len(configs)
     logging.info(f"Starting to send {total} configs in chunks of {chunk_size}...")
+    
+    iran_tz = pytz.timezone("Asia/Tehran")
+    total_parts = (total + chunk_size - 1) // chunk_size
 
     for i in range(0, total, chunk_size):
         chunk = configs[i:i + chunk_size]
         
-        # تگ‌گذاری تک‌تک کانفیگ‌های این چانک
-        tagged_chunk = [add_tag_to_config(line, "DemonWasHere") for line in chunk]
-        chunk_text = "\n".join(tagged_chunk)
+        # ۱. تمیزسازی و تگ‌گذاری کانفیگ‌ها
+        cleaned_chunk = [clean_config_for_telegram(cfg) for cfg in chunk]
+        tagged_chunk = [add_tag_to_config(line, "DemonWasHere") for line in cleaned_chunk]
         
+        configs_text = "```\n" + "\n".join(tagged_chunk) + "\n```"
+        
+        time_ir = datetime.now(iran_tz).strftime("%Y-%m-%d %H:%M:%S")
+        part_number = (i // chunk_size) + 1
+
+        safe_main_channel_id = ("@" + MAIN_CHANNEL_ID_RAW).replace('__', '\\_\\_')
+        safe_config_channel_id = ("@" + CONFIG_CHANNEL_ID_RAW).replace('__', '\\_\\_')
+
+        # ساختار کپشن پیام همراه با اطلاعات پارت‌ها و لینک‌ها
+        caption = (
+            f"📦 **Pack ({part_number} of {total_parts}):**\n\n"
+            f"{configs_text}\n\n"
+            f"🕒 Time: {time_ir}\n"
+            f"🆔 Main Channel: [{safe_main_channel_id}]({MAIN_CHANNEL_URL})\n"
+            f"🚀 Config Channel: [{safe_config_channel_id}]({CONFIG_CHANNEL_URL})"
+        )
+        
+        # ارسال پیام با استفاده از تابع کنترل نرخ (Rate Limit) و اعمال دکمه شیشه‌ای MARKUP
         try:
-            # استفاده از channel_id که نام درست متغیر ورودی است
-            bot.send_message(
-                chat_id=channel_id,
-                text=chunk_text,
-                parse_mode='Markdown',
-                disable_web_page_preview=True
-            )
-            time.sleep(1.5) # تاخیر ایمن برای جلوگیری از محدودیت تلگرام (FloodWait)
-      except Exception as e:
-            logging.error(f"Failed to send chunk {i}: {e}")
-            time.sleep(3) # اگر خطا داد کمی بیشتر صبر کند و ادامه دهد
-
-    logging.info(f"All {total} configs processed and sent to Telegram.")
-            # تمیزسازی و آماده‌سازی متن کانفیگ‌ها داخل بلوک کد
-            cleaned_chunk = [clean_config_for_telegram(cfg) for cfg in chunk]
-            configs_text = "```\n" + "\n".join(cleaned_chunk) + "\n```"
-            
-            time_ir = datetime.now(iran_tz).strftime("%Y-%m-%d %H:%M:%S")
-            part_number = (i // chunk_size) + 1
-            total_parts = (len(checked_configs) + chunk_size - 1) // chunk_size
-
-            safe_main_channel_id = ("@" + MAIN_CHANNEL_ID_RAW).replace('__', '\\_\\_')
-            safe_config_channel_id = ("@" + CONFIG_CHANNEL_ID_RAW).replace('__', '\\_\\_')
-
-            caption = (
-                f"📦 **Pack ( {part_number} of  {total_parts}):**\n\n"
-                f"{configs_text}\n\n\n\n"
-                f" Time: {time_ir}\n"
-                f"🆔 Main Channel: [{safe_main_channel_id}]({MAIN_CHANNEL_URL})\n"
-                f"🚀 Config Channel: [{safe_config_channel_id}]({CONFIG_CHANNEL_URL})"
-            )
-
             send_with_rate_limit_handling(
                 bot,
                 chat_id=channel_id,
@@ -152,7 +141,7 @@ def send_all_grouped_configs(bot, channel_id, configs, chunk_size=10):
                 reply_markup=MARKUP,
                 parse_mode='Markdown'
             )
-            
-        logging.info(f"All {len(checked_configs)} configs sent in chunks of {chunk_size}.")
-    except Exception as e:
-        logging.error(f"Error sending grouped configs: {e}")
+        except Exception as e:
+            logging.error(f"Error sending chunk {part_number}: {e}")
+
+    logging.info(f"All {total} configs processed and sent in chunks of {chunk_size}.")
