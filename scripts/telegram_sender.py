@@ -129,9 +129,9 @@ def send_all_grouped_configs(bot, channel_id: str, checked_configs: List[str], c
             safe_config_channel_id = ("@" + CONFIG_CHANNEL_ID_RAW).replace('__', '\\_\\_')
 
             caption = (
-                f"📦 **پک کانفیگ (بخش {part_number} از {total_parts}):**\n\n"
-                f"{configs_text}\n\n"
-                f"⏰ Time: {time_ir}\n\n"
+                f"📦 **Pack ( {part_number} of  {total_parts}):**\n\n"
+                f"{configs_text}\n\n\n\n"
+                f" Time: {time_ir}\n"
                 f"🆔 Main Channel: [{safe_main_channel_id}]({MAIN_CHANNEL_URL})\n"
                 f"🚀 Config Channel: [{safe_config_channel_id}]({CONFIG_CHANNEL_URL})"
             )
