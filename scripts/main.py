@@ -265,7 +265,7 @@ def main():
             try:
                 bot = telegram_sender.init_bot(TELEGRAM_BOT_TOKEN)
                 if bot:
-                    telegram_sender.send_summary_message(bot, TELEGRAM_CHANNEL_ID, protocol_counts)
+                   # telegram_sender.send_summary_message(bot, TELEGRAM_CHANNEL_ID, protocol_counts)
                     telegram_sender.send_all_grouped_configs(bot, TELEGRAM_CHANNEL_ID, checked_configs, chunk_size=10)
                     logging.info("Telegram notifications sent successfully.")
             except Exception as e:
