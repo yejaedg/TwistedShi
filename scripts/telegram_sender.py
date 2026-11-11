@@ -1,13 +1,12 @@
 import base64
 import json
 import logging
+import os
 import re
 import time
 from datetime import datetime
 from typing import List, Dict
-import os
 import urllib.parse
-
 import pytz
 import telebot
 from telebot import types
@@ -28,14 +27,15 @@ btn2 = types.InlineKeyboardButton("Author", url="https://t.me/arshiacomplus")
 MARKUP.add(btn1, btn2)
 
 
-def init_bot(token: str) -> telebot.TeleBot | None:
+def init_bot(token: str):
     try:
-        return telebot.TeleBot(token)
+        bot = telebot.TeleBot(token)
+        return bot
     except Exception as e:
         logging.error(f"Failed to initialize Telegram bot: {e}")
         return None
-def full_unquote(s: str) -> str:
 
+def full_unquote(s: str) -> str:
     if '%' not in s:
         return s
 
@@ -44,8 +44,8 @@ def full_unquote(s: str) -> str:
         prev_s = s
         s = urllib.parse.unquote(s)
     return s
-def send_summary_message(bot: telebot.TeleBot, chat_id: str, counts: Dict[str, int]):
 
+def send_summary_message(bot: telebot.TeleBot, chat_id: str, counts: Dict[str, int]):
     base_raw_url = f"https://raw.githubusercontent.com/{GITHUB_REPOSITORY}/main"
 
     message = "📊 **خلاصه ساب‌لینک‌های V2rayExtractor** 📊\n\n"
@@ -66,65 +66,31 @@ def send_summary_message(bot: telebot.TeleBot, chat_id: str, counts: Dict[str, i
         message += f"**{protocol.upper()}:**\n"
         message += f"```\n{links_map.get(protocol, '')}\n```\n"
 
-
     iran_tz = pytz.timezone("Asia/Tehran")
     time_ir = datetime.now(iran_tz).strftime("%Y-%m-%d %H:%M")
     message += f"\n*آخرین بروزرسانی: {time_ir}*"
 
     try:
         bot.send_message(chat_id, message, parse_mode='Markdown', disable_web_page_preview=True)
+        logging.info("Summary message sent to Telegram.")
     except Exception as e:
         logging.error(f"Failed to send summary message to {chat_id}: {e}")
 
 def clean_config_for_telegram(config: str) -> str:
-
     return re.sub(r'(#.*?)::[A-Z]{2}$', r'\1', config)
 
-def regroup_configs_by_source(checked_configs: List[str]) -> Dict[str, List[str]]:
-
-    regrouped = {}
-    for config in checked_configs:
-        source_channel = "unknown_source"
-        full_tag = ""
-
-        try:
-            if config.startswith("vmess://"):
-                try:
-                    encoded_part = config.split("://")[1].split('#', 1)[0]
-                    encoded_part += '=' * (-len(encoded_part) % 4)
-                    decoded_json = base64.b64decode(encoded_part).decode("utf-8")
-                    vmess_data = json.loads(decoded_json)
-                    raw_tag = vmess_data.get("ps", "")
-                    full_tag = full_unquote(raw_tag)
-                except Exception:
-                    if '#' in config:
-                        full_tag = full_unquote(config.split('#', 1)[1])
-
-            elif '#' in config:
-                tag_part = config.split('#', 1)[1]
-                full_tag = full_unquote(tag_part)
-
-            if full_tag and '>>' not in full_tag and '%' in full_tag:
-                full_tag = full_unquote(full_tag)
-
-            match = re.search(r'>>\s*@([\w\d_]+)', full_tag)
-            if match:
-                source_channel = f"@{match.group(1)}"
-        except Exception as e:
-            logging.warning(f"Could not parse tag for source detection in '{config[:50]}...': {e}")
-
-        if source_channel not in regrouped:
-            regrouped[source_channel] = []
-
-        cleaned_config = clean_config_for_telegram(config)
-        regrouped[source_channel].append(cleaned_config)
-    return regrouped
-
-def send_with_rate_limit_handling(bot_instance, *args, **kwargs):
+def send_with_rate_limit_handling(bot_instance, chat_id, text, reply_markup=None, parse_mode='Markdown'):
+    """مدیریت ارسال پیام همراه با کنترل نرخ درخواست (Rate Limit) تلگرام"""
     while True:
         try:
-            bot_instance.send_message(*args, **kwargs)
-            time.sleep(1)
+            bot_instance.send_message(
+                chat_id=chat_id,
+                text=text,
+                reply_markup=reply_markup,
+                parse_mode=parse_mode,
+                disable_web_page_preview=True
+            )
+            time.sleep(1)  # وقفه کوتاه برای جلوگیری از اسپم
             break
         except ApiTelegramException as e:
             if e.error_code == 429:
@@ -134,33 +100,38 @@ def send_with_rate_limit_handling(bot_instance, *args, **kwargs):
             else:
                 logging.error(f"An unhandled Telegram API error occurred: {e}")
                 break
+        except Exception as e:
+            logging.error(f"Failed to send telegram message: {e}")
+            break
 
-def send_all_grouped_configs(bot: telebot.TeleBot, channel_id: str, grouped_configs: Dict[str, List[str]]):
+def send_all_grouped_configs(bot, channel_id: str, checked_configs: List[str], chunk_size: int = 10):
+    """
+    تقسیم کانفیگ‌ها به دسته‌های حداکثر ۱۰ تایی و ارسال هر دسته به صورت جداگانه با دکمه و قالب شکیل
+    """
+    if not checked_configs:
+        return
 
-    for source in sorted(grouped_configs.keys()):
-        configs = grouped_configs[source]
-        if not configs:
-            continue
-
-        logging.info(f"Sending {len(configs)} configs from source '{source}' to {channel_id}")
-
-        for i in range(0, len(configs), 15):
-            batch = configs[i:i + 15]
-            message_text = "```\n" + "\n\n".join(batch) + "\n```"
-
-            iran_tz = pytz.timezone("Asia/Tehran")
+    try:
+        iran_tz = pytz.timezone("Asia/Tehran")
+        
+        for i in range(0, len(checked_configs), chunk_size):
+            chunk = checked_configs[i:i + chunk_size]
+            
+            # تمیزسازی و آماده‌سازی متن کانفیگ‌ها داخل بلوک کد
+            cleaned_chunk = [clean_config_for_telegram(cfg) for cfg in chunk]
+            configs_text = "```\n" + "\n".join(cleaned_chunk) + "\n```"
+            
             time_ir = datetime.now(iran_tz).strftime("%Y-%m-%d %H:%M:%S")
-            from_link = f"https://t.me/{source[1:]}" if source.startswith('@') else "منبع نامشخص"
+            part_number = (i // chunk_size) + 1
+            total_parts = (len(checked_configs) + chunk_size - 1) // chunk_size
 
-
-            safe_source = source.replace('__', '\\_\\_')
             safe_main_channel_id = ("@" + MAIN_CHANNEL_ID_RAW).replace('__', '\\_\\_')
             safe_config_channel_id = ("@" + CONFIG_CHANNEL_ID_RAW).replace('__', '\\_\\_')
 
             caption = (
-                f"{message_text}\n\n"
-                f"⏰ Time: {time_ir}\n"
-                f"🔍 From: [{safe_source}]({from_link})\n\n"
+                f"📦 **پک کانفیگ (بخش {part_number} از {total_parts}):**\n\n"
+                f"{configs_text}\n\n"
+                f"⏰ Time: {time_ir}\n\n"
                 f"🆔 Main Channel: [{safe_main_channel_id}]({MAIN_CHANNEL_URL})\n"
                 f"🚀 Config Channel: [{safe_config_channel_id}]({CONFIG_CHANNEL_URL})"
             )
@@ -170,6 +141,9 @@ def send_all_grouped_configs(bot: telebot.TeleBot, channel_id: str, grouped_conf
                 chat_id=channel_id,
                 text=caption,
                 reply_markup=MARKUP,
-                parse_mode='Markdown',
-                disable_web_page_preview=True
+                parse_mode='Markdown'
             )
+            
+        logging.info(f"All {len(checked_configs)} configs sent in chunks of {chunk_size}.")
+    except Exception as e:
+        logging.error(f"Error sending grouped configs: {e}")
