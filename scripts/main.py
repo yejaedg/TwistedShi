@@ -19,6 +19,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # لیست لینک‌های Raw گیت‌هاب برای دریافت کانفیگ‌ها
 GITHUB_RAW_URLS = [
     "https://github.com/0xRadikal/Free-v2ray-Configs/raw/refs/heads/main/top100.txt",
+    "https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/main/fast/configs.txt" ,
+    "https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/main/verified/configs.txt" ,
+    "https://raw.githubusercontent.com/0xRadikal/Free-v2ray-Configs/main/secure/configs.txt",
+    
 ]
 
 SEND_TO_TELEGRAM = os.getenv('SEND_TO_TELEGRAM', 'false').lower() == 'true'
