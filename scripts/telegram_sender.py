@@ -73,50 +73,59 @@ def send_with_rate_limit_handling(bot_instance, chat_id, text, reply_markup=None
         except Exception as e:
             logging.error(f"Failed to send telegram message: {e}")
             break
+            
 def add_tag_to_config(config_line, tag="DemonWasHere"):
-    """تگ دلخواه را به انتهای نام کانفیگ اضافه می‌کند"""
+    """تگ دلخواه را با امنیت کامل به انتهای نام کانفیگ اضافه می‌کند"""
+    if not isinstance(config_line, str):
+        return str(config_line)
+        
     config_line = config_line.strip()
     if not config_line or '://' not in config_line:
         return config_line
         
-    # اگر کانفیگ علامت # داشته باشد، اسم جدید را با تگ ترکیب می‌کند
-    if '#' in config_line:
-        base_config, current_name = config_line.rsplit('#', 1)
-        new_name = f"{current_name}-{tag}"
-        return f"{base_config}#{new_name}"
-    else:
-        # اگر نام نداشت، تگ را به انتهای آن می‌چسباند
-        return f"{config_line}#{tag}"
+    try:
+        if '#' in config_line:
+            base_config, current_name = config_line.rsplit('#', 1)
+            if tag in current_name:
+                return config_line
+            new_name = f"{current_name}-{tag}"
+            return f"{base_config}#{new_name}"
+        else:
+            return f"{config_line}#{tag}"
+    except Exception:
+        return config_line
 
 
-def send_all_grouped_configs(bot, channel_id: str, checked_configs: List[str], chunk_size: int = 10):
-    """
-    تقسیم کانفیگ‌ها به دسته‌های حداکثر ۱۰ تایی و ارسال هر دسته به صورت جداگانه با دکمه و قالب شکیل
-    """
-    if not checked_configs:
+def send_all_grouped_configs(bot, channel_id, configs, chunk_size=10):
+    """ارسال کانفیگ‌ها به صورت دسته‌ای همراه با تگ‌گذاری و جلوگیری از خطای متغیر"""
+    if not configs:
+        logging.warning("No configs to send.")
         return
 
-    try:
-        iran_tz = pytz.timezone("Asia/Tehran")
+    total = len(configs)
+    logging.info(f"Starting to send {total} configs in chunks of {chunk_size}...")
+
+    for i in range(0, total, chunk_size):
+        chunk = configs[i:i + chunk_size]
         
-        for i in range(0, len(checked_configs), chunk_size):
-            chunk = checked_configs[i:i + chunk_size]
-            # 👈 این بخش جدید: تک‌تک کانفیگ‌های این چانک را تگ‌گذاری می‌کنیم
+        # تگ‌گذاری تک‌تک کانفیگ‌های این چانک
         tagged_chunk = [add_tag_to_config(line, "DemonWasHere") for line in chunk]
-        
-        # ساخت متن نهایی از کانفیگ‌های تگ‌خورده
         chunk_text = "\n".join(tagged_chunk)
         
         try:
+            # استفاده از channel_id که نام درست متغیر ورودی است
             bot.send_message(
-                chat_id=chat_id,
+                chat_id=channel_id,
                 text=chunk_text,
                 parse_mode='Markdown',
                 disable_web_page_preview=True
             )
-            time.sleep(1) # تاخیر برای جلوگیری از محدودیت تلگرام
-        except Exception as e:
-            logging.error(f"Failed to send chunk: {e}")
+            time.sleep(1.5) # تاخیر ایمن برای جلوگیری از محدودیت تلگرام (FloodWait)
+      except Exception as e:
+            logging.error(f"Failed to send chunk {i}: {e}")
+            time.sleep(3) # اگر خطا داد کمی بیشتر صبر کند و ادامه دهد
+
+    logging.info(f"All {total} configs processed and sent to Telegram.")
             # تمیزسازی و آماده‌سازی متن کانفیگ‌ها داخل بلوک کد
             cleaned_chunk = [clean_config_for_telegram(cfg) for cfg in chunk]
             configs_text = "```\n" + "\n".join(cleaned_chunk) + "\n```"
