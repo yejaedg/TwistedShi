@@ -2,7 +2,7 @@ name: V2Ray Config Extractor & Checker
 
 on:
   schedule:
-   - cron: '0 0 * * *'
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -12,15 +12,8 @@ jobs:
   build-and-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Main Repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Checkout Sub-Checker Repository
-        uses: actions/checkout@v4
-        with:
-          repository: arshiacomplus/sub-checker
-          path: sub-checker
-
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,9 +27,6 @@ jobs:
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
-          if [ -f sub-checker/requirements.txt ]; then
-            pip install -r sub-checker/requirements.txt
-          fi
 
       - name: Run Main Extractor Script
         env:
@@ -44,7 +34,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
-        run: python scripts/main.py
+        run: python main.py
 
       - name: Commit and Push Results
         run: |
@@ -56,5 +46,4 @@ jobs:
           else
             git commit -m "📊 Update V2Ray configs"
             git push
-
           fi
