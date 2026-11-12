@@ -1,2 +1,2 @@
-hysteria2://740f1a75659256a8c0e2a5686d573496b2a2@67.216.207.144:443?insecure=1&sni=www.bing.com&obfs=salamander&obfs-password=5eec7c480dc2af8a7cfdd7beb90ee911da11#US
+hy2://usqmqUKJFIlCmvkCNSY64L3k@8.209.247.109:443?insecure=1&sni=bing.com#JP
 hysteria2://p7Q76LzlnS4hIzr1W3staBOnUe_WwSkR@130.49.161.70:443?security=tls&obfs=salamander&obfs-password=rG07s3COMIEvdnQipRyWzx_H_2xygNC3&insecure=0&sni=hy2.aspidnet.xyz#NL
