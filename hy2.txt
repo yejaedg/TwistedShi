@@ -1,11 +1,10 @@
 hy2://usqmqUKJFIlCmvkCNSY64L3k@8.209.247.109:443?insecure=1&sni=bing.com#JP
-hysteria2://HowdyHysteria2023w0W@51.15.19.206:8443?insecure=1&obfs=salamander&obfs-password=HysteriaHowdy&sni=vkvd127.mycdn.me#NL
+hysteria2://p7Q76LzlnS4hIzr1W3staBOnUe_WwSkR@130.49.161.70:443?security=tls&obfs=salamander&obfs-password=rG07s3COMIEvdnQipRyWzx_H_2xygNC3&insecure=0&sni=hy2.aspidnet.xyz#NL
 hysteria2://HowdyHysteria2023w0W@51.15.19.206:8443?insecure=1&obfs=salamander&obfs-password=HysteriaHowdy&sni=hysteria.udpgw.com#NL
 hysteria2://HowdyHysteria2023w0W@51.15.19.206:8443?insecure=1&obfs=salamander&obfs-password=HysteriaHowdy&sni=sni-here.com#NL
-hysteria2://HowdyHysteria2023w0W@51.15.19.206:8443?insecure=1&obfs=salamander&obfs-password=HysteriaHowdy&sni=vk.com#NL
 hysteria2://dongtaiwang.com@62.210.124.146:22000?insecure=1&sni=www.microsoft.com#FR
-hysteria2://p7Q76LzlnS4hIzr1W3staBOnUe_WwSkR@130.49.161.70:443?security=tls&obfs=salamander&obfs-password=rG07s3COMIEvdnQipRyWzx_H_2xygNC3&insecure=0&sni=hy2.aspidnet.xyz#NL
-hysteria2://247802ca-0fbb-428a-b807-91a6e571b5c7@201.58.190.235:443/?insecure=1&obfs=salamander&obfs-password=sFQIE4F3SbaXCYoCQTY-4YvYiif8__By&pinSHA256=8951ff7b7cd60fb28b7982f03fbe9c4739bf43e6b2a3a64c8dc45276f92b366b&sni=hy2-pl.snobvpn.online#PL
+hysteria2://HowdyHysteria2023w0W@51.15.19.206:8443?insecure=1&obfs=salamander&obfs-password=HysteriaHowdy&sni=vkvd127.mycdn.me#NL
+hysteria2://HowdyHysteria2023w0W@51.15.19.206:8443?insecure=1&obfs=salamander&obfs-password=HysteriaHowdy&sni=vk.com#NL
+hy2://307ee0e53ea04dfd86a7f2f9fcd53844@s5.libertyrunet.store:443/?hop_interval=10&sni=s5.libertyrunet.store#RS
 hysteria2://307ee0e53ea04dfd86a7f2f9fcd53844@s5.libertyrunet.store:443?sni=s5.libertyrunet.store&path=%2f#RS
 hysteria2://HowdyHysteria2023w0W@hysteria.udpgw.com:8443?insecure=1&obfs=salamander&obfs-password=HysteriaHowdy&sni=hysteria.udpgw.com#NL
-hy2://307ee0e53ea04dfd86a7f2f9fcd53844@s5.libertyrunet.store:443/?hop_interval=10&sni=s5.libertyrunet.store#RS
